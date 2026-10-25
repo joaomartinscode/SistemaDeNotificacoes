@@ -3,6 +3,9 @@ package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dto.RecipientDTO;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.utils.myList;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -25,9 +28,10 @@ public class Notification {
     @Column(nullable = false)
     private ChannelType channelType;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "notification_id")
-    private List<Recipient> recipients = new ArrayList<>();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    @Transient
+    private myList<RecipientDTO> recipients;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -39,7 +43,7 @@ public class Notification {
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
-    @Column(name = "failure_reason")
+    @Column(name = "failure_reason", columnDefinition = "TEXT")
     private String failureReason;
 
     public Notification() {
@@ -71,9 +75,9 @@ public class Notification {
 
     public void setPayload(Map<String, Object> payload) {
         this.payload = payload != null ? payload : new HashMap<>();
+        this.recipients = null;
     }
 
-    @Transient
     public String getSubject() {
         if (this.payload != null) {
             Object s = this.payload.get("subject");
@@ -111,12 +115,53 @@ public class Notification {
         this.channelType = channelType;
     }
 
-    public List<Recipient> getRecipients() {
+    public String getRecipientsJson() {
+        if (this.payload == null || !this.payload.containsKey("recipients")) {
+            return null;
+        }
+        Object r = this.payload.get("recipients");
+        if (r == null) {
+            return null;
+        }
+        if (r instanceof String s) {
+            return s;
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(r);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void setRecipientsJson(String recipientsJson) {
+        if (this.payload == null) {
+            this.payload = new HashMap<>();
+        }
+        if (recipientsJson == null || recipientsJson.isBlank() || "[]".equals(recipientsJson)) {
+            this.payload.remove("recipients");
+        } else {
+            try {
+                Object parsed = OBJECT_MAPPER.readValue(recipientsJson, Object.class);
+                this.payload.put("recipients", parsed);
+            } catch (Exception e) {
+                this.payload.put("recipients", recipientsJson);
+            }
+        }
+        this.recipients = null;
+    }
+
+    public List<RecipientDTO> getRecipients() {
+        if (this.recipients == null) {
+            this.recipients = new myList<>(this::getRecipientsJson, this::setRecipientsJson, RecipientDTO.class);
+        }
         return recipients;
     }
 
-    public void setRecipients(List<Recipient> recipients) {
-        this.recipients = recipients != null ? recipients : new ArrayList<>();
+    public void setRecipients(List<RecipientDTO> recipients) {
+        getRecipients().clear();
+        if (recipients != null) {
+            getRecipients().addAll(recipients);
+        }
     }
 
     public DeliveryStatus getStatus() {

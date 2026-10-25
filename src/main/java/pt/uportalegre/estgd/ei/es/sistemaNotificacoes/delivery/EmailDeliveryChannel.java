@@ -1,12 +1,15 @@
 package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery;
 
-import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.ChannelType;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Notification;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dto.RecipientDTO;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class EmailDeliveryChannel implements DeliveryChannel {
@@ -40,14 +43,30 @@ public class EmailDeliveryChannel implements DeliveryChannel {
             message.setBcc(bcc);
         }
 
-        mailSender.send(message);
+        try {
+            mailSender.send(message);
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+
+            if (msg.contains("not a valid") || msg.contains("Invalid Addresses")) {
+                throw new RuntimeException("Endereço de email inválido: " + String.join(", ", to));
+            }
+            if (msg.contains("Authentication") || msg.contains("535")) {
+                throw new RuntimeException("Falha de autenticação no servidor de email.");
+            }
+            if (msg.contains("Connection refused") || msg.contains("timed out")) {
+                throw new RuntimeException("Não foi possível ligar ao servidor de email.");
+            }
+
+            throw new RuntimeException("Erro ao enviar email: " + msg);
+        }
     }
 
     private String[] getRecipientsByType(Notification notification, String type) {
         List<String> result = new ArrayList<>();
-        List<Recipient> recipients = notification.getRecipients();
+        List<RecipientDTO> recipients = notification.getRecipients();
         if (recipients != null) {
-            for (Recipient r : recipients) {
+            for (RecipientDTO r : recipients) {
                 String recipientType = r.getType();
                 if (type.equalsIgnoreCase(recipientType) || ("TO".equalsIgnoreCase(type) && recipientType == null)) {
                     result.add(r.getDestination());

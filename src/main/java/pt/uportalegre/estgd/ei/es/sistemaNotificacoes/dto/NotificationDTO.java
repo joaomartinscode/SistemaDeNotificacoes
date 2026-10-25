@@ -38,9 +38,7 @@ public record NotificationDTO(
 
         List<RecipientDTO> recipientDTOs = new ArrayList<>();
         if (notification.getRecipients() != null) {
-            for (Recipient r : notification.getRecipients()) {
-                recipientDTOs.add(RecipientDTO.fromEntity(r));
-            }
+            recipientDTOs.addAll(notification.getRecipients());
         }
 
         return new NotificationDTO(
@@ -71,13 +69,9 @@ public record NotificationDTO(
             entity.setSubject(this.subject);
         }
 
-        List<Recipient> recipientEntities = new ArrayList<>();
         if (this.recipients != null) {
-            for (RecipientDTO dto : this.recipients) {
-                recipientEntities.add(dto.toEntity());
-            }
+            entity.setRecipients(new ArrayList<>(this.recipients));
         }
-        entity.setRecipients(recipientEntities);
         return entity;
     }
 }
