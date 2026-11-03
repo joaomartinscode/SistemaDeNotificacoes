@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.services.NotificationService;
 
 @Component
-public class NotificationWorker {
+public class NotificationWorkers {
 
     @Autowired
     private NotificationService notificationService;
@@ -14,5 +14,10 @@ public class NotificationWorker {
     @Scheduled(fixedDelay = 10000)
     public void sendPendingNotifications() {
         notificationService.sendPendingNotifications();
+    }
+
+    @Scheduled(fixedDelay = 15000)
+    public void checkDeliveryStatus() {
+        notificationService.checkDeliveryStatus();
     }
 }

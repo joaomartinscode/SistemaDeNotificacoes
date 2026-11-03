@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-@Disabled("Requer base de dados MySQL ativa para carregar o contexto completo")
 class SistemaDeNotificacoesApplicationTests {
 
     @Test

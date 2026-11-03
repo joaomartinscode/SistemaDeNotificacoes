@@ -81,6 +81,38 @@ public class NotificationService {
         throw new IllegalArgumentException("Canal de entrega não suportado: " + channelType);
     }
 
+    @Transactional
+    public void checkDeliveryStatus() {
+        for (DeliveryChannel channel : deliveryChannels) {
+            for (String messageId : channel.checkDeliveryStatus()) {
+                handleDeliveryFailure(messageId, "Bounce: Delivery failure");
+            }
+        }
+    }
+
+    @Transactional
+    public void handleDeliveryFailure(String trackingId, String reason) {
+        Optional<Notification> optNotification = notificationRepository.findByMessageId(trackingId);
+
+        if (optNotification.isPresent()) {
+            Notification notification = optNotification.get();
+
+            int attemptNumber = Math.max(1, notification.getAttempts());
+            notification.setStatus(DeliveryStatus.FAILED);
+            notification.setFailureReason(reason);
+
+            NotificationAttempt attempt = new NotificationAttempt(
+                    notification,
+                    attemptNumber,
+                    DeliveryStatus.FAILED,
+                    reason
+            );
+            notification.getAttemptsHistory().add(attempt);
+
+            notificationRepository.save(notification);
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<NotificationDTO> findAll() {
         List<NotificationDTO> dtos = new ArrayList<>();

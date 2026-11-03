@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NotificationRepository extends CrudRepository<Notification, Integer> {
 
@@ -14,4 +15,7 @@ public interface NotificationRepository extends CrudRepository<Notification, Int
 
     @Query("SELECT n FROM Notification n WHERE n.status IN ?1 ORDER BY n.createdAt ASC")
     List<Notification> findByStatus(List<DeliveryStatus> status);
+
+    @Query(value = "SELECT * FROM notification n WHERE n.payload LIKE CONCAT('%', ?1, '%') LIMIT 1", nativeQuery = true)
+    Optional<Notification> findByMessageId(String messageId);
 }

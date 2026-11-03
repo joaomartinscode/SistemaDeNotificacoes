@@ -135,8 +135,8 @@ public class Notification {
         if (r == null) {
             return null;
         }
-        if (r instanceof String s) {
-            return s;
+        if (r instanceof String) {
+            return (String) r;
         }
         try {
             return OBJECT_MAPPER.writeValueAsString(r);

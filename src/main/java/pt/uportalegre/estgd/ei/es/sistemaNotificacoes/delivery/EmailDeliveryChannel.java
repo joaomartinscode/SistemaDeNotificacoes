@@ -5,10 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dao.NotificationRepository;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.ChannelType;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.DeliveryStatus;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Notification;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dto.RecipientDTO;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +20,12 @@ public class EmailDeliveryChannel implements DeliveryChannel {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private EmailBounceDetector emailBounceDetector;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     @Override
     public boolean supports(ChannelType channelType) {
@@ -81,5 +90,21 @@ public class EmailDeliveryChannel implements DeliveryChannel {
 
             throw new RuntimeException("Erro ao enviar email: " + msg);
         }
+    }
+
+    @Override
+    public List<String> checkDeliveryStatus() {
+        LocalDateTime window = LocalDateTime.now().minusMinutes(15);
+        List<Notification> sentNotifications = notificationRepository.findByStatus(List.of(DeliveryStatus.SENT));
+        List<String> messageIds = new ArrayList<>();
+        for (Notification notification : sentNotifications) {
+            if (notification.getSentAt() != null && notification.getSentAt().isBefore(window)) {
+                continue;
+            }
+            if (notification.getPayload() != null && notification.getPayload().get("messageId") != null) {
+                messageIds.add(notification.getPayload().get("messageId").toString());
+            }
+        }
+        return emailBounceDetector.findBouncedIds(messageIds);
     }
 }
