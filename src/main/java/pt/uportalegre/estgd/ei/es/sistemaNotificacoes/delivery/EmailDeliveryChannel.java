@@ -1,8 +1,9 @@
 package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery;
 
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.ChannelType;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Notification;
@@ -24,27 +25,47 @@ public class EmailDeliveryChannel implements DeliveryChannel {
 
     @Override
     public void send(Notification notification) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        String subject = notification.getSubject() != null ? notification.getSubject() : "";
-        message.setSubject(subject);
-        message.setText(notification.getContent());
+        List<String> to = new ArrayList<>();
+        List<String> cc = new ArrayList<>();
+        List<String> bcc = new ArrayList<>();
 
-        String[] to = getRecipientsByType(notification, "TO");
-        String[] cc = getRecipientsByType(notification, "CC");
-        String[] bcc = getRecipientsByType(notification, "BCC");
-
-        if (to.length > 0) {
-            message.setTo(to);
-        }
-        if (cc.length > 0) {
-            message.setCc(cc);
-        }
-        if (bcc.length > 0) {
-            message.setBcc(bcc);
+        if (notification.getRecipients() != null) {
+            for (RecipientDTO r : notification.getRecipients()) {
+                String type = r.getType();
+                if ("CC".equalsIgnoreCase(type)) {
+                    cc.add(r.getDestination());
+                } else if ("BCC".equalsIgnoreCase(type)) {
+                    bcc.add(r.getDestination());
+                } else {
+                    to.add(r.getDestination());
+                }
+            }
         }
 
         try {
-            mailSender.send(message);
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+
+            String subject = notification.getSubject() != null ? notification.getSubject() : "";
+            helper.setSubject(subject);
+            helper.setText(notification.getContent());
+
+            if (!to.isEmpty()) {
+                helper.setTo(to.toArray(new String[0]));
+            }
+            if (!cc.isEmpty()) {
+                helper.setCc(cc.toArray(new String[0]));
+            }
+            if (!bcc.isEmpty()) {
+                helper.setBcc(bcc.toArray(new String[0]));
+            }
+
+            mailSender.send(mimeMessage);
+
+            String messageId = mimeMessage.getMessageID();
+            if (messageId != null) {
+                notification.getPayload().put("messageId", messageId);
+            }
         } catch (Exception e) {
             String msg = e.getMessage() != null ? e.getMessage() : "";
 
@@ -60,19 +81,5 @@ public class EmailDeliveryChannel implements DeliveryChannel {
 
             throw new RuntimeException("Erro ao enviar email: " + msg);
         }
-    }
-
-    private String[] getRecipientsByType(Notification notification, String type) {
-        List<String> result = new ArrayList<>();
-        List<RecipientDTO> recipients = notification.getRecipients();
-        if (recipients != null) {
-            for (RecipientDTO r : recipients) {
-                String recipientType = r.getType();
-                if (type.equalsIgnoreCase(recipientType) || ("TO".equalsIgnoreCase(type) && recipientType == null)) {
-                    result.add(r.getDestination());
-                }
-            }
-        }
-        return result.toArray(new String[0]);
     }
 }

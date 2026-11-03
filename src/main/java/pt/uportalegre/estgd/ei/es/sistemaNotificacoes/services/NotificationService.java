@@ -26,25 +26,50 @@ public class NotificationService {
 
         Notification saved = notificationRepository.save(notification);
 
-        submitNotification(saved);
+        return NotificationDTO.fromEntity(saved);
+    }
 
-        Notification updated = notificationRepository.save(saved);
+    @Transactional
+    public void sendPendingNotifications() {
+        List<Notification> pendingNotifications = notificationRepository.findByStatus(List.of(DeliveryStatus.CREATED, DeliveryStatus.RETRYING));
 
-        return NotificationDTO.fromEntity(updated);
+        for (Notification notification : pendingNotifications) {
+            submitNotification(notification);
+            notificationRepository.save(notification);
+        }
     }
 
     private void submitNotification(Notification notification) {
+        int currentAttempt = notification.getAttempts() + 1;
+        notification.setAttempts(currentAttempt);
+
+        DeliveryStatus status;
+        String errorMessage = null;
+
         try {
             DeliveryChannel channel = getDeliveryChannel(notification.getChannelType());
             channel.send(notification);
+
             notification.setStatus(DeliveryStatus.SENT);
             notification.setSentAt(LocalDateTime.now());
             notification.setFailureReason(null);
+            status = DeliveryStatus.SENT;
         } catch (Exception e) {
-            notification.setStatus(DeliveryStatus.FAILED);
+            status = DeliveryStatus.FAILED;
+            errorMessage = e.getMessage();
+
             notification.setSentAt(null);
-            notification.setFailureReason(e.getMessage());
+            notification.setFailureReason(errorMessage);
+
+            if (currentAttempt < notification.getMaxAttempts()) {
+                notification.setStatus(DeliveryStatus.RETRYING);
+            } else {
+                notification.setStatus(DeliveryStatus.FAILED);
+            }
         }
+
+        NotificationAttempt attempt = new NotificationAttempt(notification, currentAttempt, status, errorMessage);
+        notification.getAttemptsHistory().add(attempt);
     }
 
     private DeliveryChannel getDeliveryChannel(ChannelType channelType) {

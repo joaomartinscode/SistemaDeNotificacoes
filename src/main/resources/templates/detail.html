@@ -10,22 +10,25 @@
 <p><strong>Assunto:</strong> <span th:text="${notification.subject}">Assunto</span></p>
 <p><strong>Canal:</strong> <span th:text="${notification.channelType}">EMAIL</span></p>
 <p><strong>Estado:</strong> <span th:text="${notification.status}">SENT</span></p>
+<p><strong>Tentativas:</strong> <span th:text="${notification.attempts}">0</span> / <span th:text="${notification.maxAttempts}">3</span></p>
 <p><strong>Data Criação:</strong> <span th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:06</span></p>
 <p th:if="${notification.sentAt}"><strong>Data Envio:</strong> <span th:text="${#temporals.format(notification.sentAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:09</span></p>
 <p th:if="${notification.failureReason}"><strong>Motivo Falha:</strong> <span th:text="${notification.failureReason}">Erro</span></p>
+
 <div th:if="${notification.payload != null and !notification.payload.isEmpty()}">
     <p><strong>Metadados Adicionais:</strong></p>
     <ul>
-        <li th:each="entry : ${notification.payload}">
+        <li th:each="entry : ${notification.payload}" th:if="${entry.key != 'subject' and entry.key != 'recipients'}">
             <strong th:text="${entry.key}">Chave</strong>: <span th:text="${entry.value}">Valor</span>
         </li>
     </ul>
 </div>
+
 <p><strong>Conteúdo:</strong></p>
 <pre th:text="${notification.content}"></pre>
 
 <h2>Destinatários</h2>
-<table>
+<table border="1">
     <thead>
     <tr>
         <th>Tipo</th>
@@ -39,6 +42,27 @@
     </tr>
     </tbody>
 </table>
+
+<h2>Histórico de Tentativas</h2>
+<table border="1" th:if="${notification.attemptsHistory != null and !notification.attemptsHistory.isEmpty()}">
+    <thead>
+    <tr>
+        <th>Tentativa #</th>
+        <th>Data / Hora</th>
+        <th>Estado</th>
+        <th>Erro / Detalhes</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="att : ${notification.attemptsHistory}">
+        <td th:text="${att.attemptNumber}">1</td>
+        <td th:text="${#temporals.format(att.attemptDate, 'dd/MM/yyyy HH:mm:ss')}">26/10/2026 15:30:00</td>
+        <td th:text="${att.status}">SENT</td>
+        <td th:text="${att.errorMessage != null ? att.errorMessage : '-'}">-</td>
+    </tr>
+    </tbody>
+</table>
+<p th:if="${notification.attemptsHistory == null or notification.attemptsHistory.isEmpty()}">Sem tentativas registadas.</p>
 
 <br>
 <a th:href="@{/notifications}">&larr; Voltar a Lista</a>

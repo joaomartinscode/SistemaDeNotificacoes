@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dto.RecipientDTO;
-import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.utils.myList;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.utils.MyList;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
@@ -31,7 +31,7 @@ public class Notification {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Transient
-    private myList<RecipientDTO> recipients;
+    private MyList<RecipientDTO> recipients;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -46,16 +46,28 @@ public class Notification {
     @Column(name = "failure_reason", columnDefinition = "TEXT")
     private String failureReason;
 
+    @Column(nullable = false)
+    private Integer attempts = 0;
+
+    @Column(nullable = false)
+    private Integer maxAttempts = 3;
+
+    @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NotificationAttempt> attemptsHistory = new ArrayList<>();
+
     public Notification() {
         this.status = DeliveryStatus.CREATED;
         this.createdAt = LocalDateTime.now();
     }
 
-    public Notification(String subject, String content, ChannelType channelType) {
+    public Notification(String subject, String content, ChannelType channelType, List<RecipientDTO> recipients) {
         this();
         this.content = content;
         this.channelType = channelType;
         setSubject(subject);
+        if (recipients != null) {
+            setRecipients(recipients);
+        }
     }
 
     public Integer getId() {
@@ -137,7 +149,7 @@ public class Notification {
         if (this.payload == null) {
             this.payload = new HashMap<>();
         }
-        if (recipientsJson == null || recipientsJson.isBlank() || "[]".equals(recipientsJson)) {
+        if (recipientsJson == null || recipientsJson.isBlank()) {
             this.payload.remove("recipients");
         } else {
             try {
@@ -147,12 +159,11 @@ public class Notification {
                 this.payload.put("recipients", recipientsJson);
             }
         }
-        this.recipients = null;
     }
 
     public List<RecipientDTO> getRecipients() {
         if (this.recipients == null) {
-            this.recipients = new myList<>(this::getRecipientsJson, this::setRecipientsJson, RecipientDTO.class);
+            this.recipients = new MyList<>(this::getRecipientsJson, this::setRecipientsJson, RecipientDTO.class);
         }
         return recipients;
     }
@@ -194,5 +205,21 @@ public class Notification {
 
     public void setFailureReason(String failureReason) {
         this.failureReason = failureReason;
+    }
+
+    public Integer getAttempts() { return attempts; }
+
+    public void setAttempts(Integer attempts) { this.attempts = attempts; }
+
+    public Integer getMaxAttempts() { return maxAttempts; }
+
+    public void setMaxAttempts(Integer maxAttempts) { this.maxAttempts = maxAttempts; }
+
+    public List<NotificationAttempt> getAttemptsHistory() {
+        return attemptsHistory;
+    }
+
+    public void setAttemptsHistory(List<NotificationAttempt> attemptsHistory) {
+        this.attemptsHistory = attemptsHistory;
     }
 }

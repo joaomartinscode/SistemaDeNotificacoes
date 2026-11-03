@@ -15,7 +15,10 @@ public record NotificationDTO(
         LocalDateTime sentAt,
         String failureReason,
         List<RecipientDTO> recipients,
-        Map<String, Object> payload
+        Map<String, Object> payload,
+        Integer attempts,
+        Integer maxAttempts,
+        List<NotificationAttemptDTO> attemptsHistory
 ) {
     public NotificationDTO {
         recipients = recipients != null ? recipients : new ArrayList<>();
@@ -25,10 +28,12 @@ public record NotificationDTO(
                 payload.put("subject", subject);
             }
         }
+
+        attemptsHistory = attemptsHistory != null ? attemptsHistory : new ArrayList<>();
     }
 
     public NotificationDTO(String subject, String content, ChannelType channelType, List<RecipientDTO> recipients) {
-        this(null, subject, content, channelType, null, null, null, null, recipients, null);
+        this(null, subject, content, channelType, null, null, null, null, recipients, null, 0, 3, null);
     }
 
     public static NotificationDTO fromEntity(Notification notification) {
@@ -41,6 +46,13 @@ public record NotificationDTO(
             recipientDTOs.addAll(notification.getRecipients());
         }
 
+        List<NotificationAttemptDTO> attemptsDTOs = new ArrayList<>();
+        if (notification.getAttemptsHistory() != null) {
+            for (NotificationAttempt attempt : notification.getAttemptsHistory()) {
+                attemptsDTOs.add(NotificationAttemptDTO.fromEntity(attempt));
+            }
+        }
+
         return new NotificationDTO(
                 notification.getId(),
                 notification.getSubject(),
@@ -51,26 +63,23 @@ public record NotificationDTO(
                 notification.getSentAt(),
                 notification.getFailureReason(),
                 recipientDTOs,
-                notification.getPayload()
+                notification.getPayload(),
+                notification.getAttempts(),
+                notification.getMaxAttempts(),
+                attemptsDTOs
         );
     }
 
     public Notification toEntity() {
-        Notification entity = new Notification();
-        entity.setId(this.id);
-        entity.setContent(this.content);
-        entity.setChannelType(this.channelType);
+        Notification entity = new Notification(this.subject, this.content, this.channelType, this.recipients);
+        if (this.id != null) {
+            entity.setId(this.id);
+        }
         if (this.status != null) {
             entity.setStatus(this.status);
         }
-
-        entity.setPayload(new HashMap<>(this.payload));
-        if (this.subject != null) {
-            entity.setSubject(this.subject);
-        }
-
-        if (this.recipients != null) {
-            entity.setRecipients(new ArrayList<>(this.recipients));
+        if (this.payload != null) {
+            entity.getPayload().putAll(this.payload);
         }
         return entity;
     }
