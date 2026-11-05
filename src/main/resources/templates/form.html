@@ -2,46 +2,46 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Nova Notificacao</title>
+    <title>New Notification</title>
 </head>
 <body>
-<h1>Nova Notificação</h1>
+<h1>New Notification</h1>
 
 <form th:action="@{/notifications/emailSend}" method="post">
     <div>
-        <label for="channelType">Canal de Envio:</label><br>
+        <label for="channelType">Delivery Channel:</label><br>
         <select id="channelType" name="channelType">
             <option th:each="ch : ${channels}" th:value="${ch}" th:text="${ch}" th:selected="${ch.name() == 'EMAIL'}">EMAIL</option>
         </select>
     </div>
     <br>
     <div>
-        <label for="to">Para (TO):</label><br>
+        <label for="to">To (TO):</label><br>
         <input type="text" id="to" name="to" required>
     </div>
     <br>
     <div>
-        <label for="cc">Com Conhecimento (CC):</label><br>
+        <label for="cc">Carbon Copy (CC):</label><br>
         <input type="text" id="cc" name="cc">
     </div>
     <br>
     <div>
-        <label for="bcc">Com Conhecimento Oculto (BCC):</label><br>
+        <label for="bcc">Blind Carbon Copy (BCC):</label><br>
         <input type="text" id="bcc" name="bcc">
     </div>
     <br>
     <div>
-        <label for="subject">Assunto:</label><br>
+        <label for="subject">Subject:</label><br>
         <input type="text" id="subject" name="subject" required>
     </div>
     <br>
     <div>
-        <label for="content">Conteúdo:</label><br>
+        <label for="content">Content:</label><br>
         <textarea id="content" name="content" rows="6" cols="40" required></textarea>
     </div>
     <br>
-    <button type="submit">Enviar</button>
-    <a th:href="@{/notifications}">Cancelar</a>
+    <button type="submit">Send</button>
+    <a th:href="@{/notifications}">Cancel</a>
 </form>
 </body>
 </html>

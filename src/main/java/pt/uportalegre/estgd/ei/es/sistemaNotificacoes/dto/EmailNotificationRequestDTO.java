@@ -19,7 +19,7 @@ public record EmailNotificationRequestDTO(
         addDestinations(recipientDTOs, this.bcc, "BCC");
 
         if (recipientDTOs.isEmpty()) {
-            throw new IllegalArgumentException("A notificação tem de ter pelo menos um destinatário.");
+            throw new IllegalArgumentException("Notification must have at least one recipient.");
         }
 
         return new NotificationDTO(

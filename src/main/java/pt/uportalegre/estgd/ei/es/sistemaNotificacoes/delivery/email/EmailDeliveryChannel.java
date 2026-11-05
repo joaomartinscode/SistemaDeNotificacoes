@@ -1,4 +1,4 @@
-package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery;
+package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery.email;
 
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,6 +6,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dao.NotificationRepository;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery.DeliveryChannel;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.ChannelType;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.DeliveryStatus;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Notification;
@@ -79,16 +80,16 @@ public class EmailDeliveryChannel implements DeliveryChannel {
             String msg = e.getMessage() != null ? e.getMessage() : "";
 
             if (msg.contains("not a valid") || msg.contains("Invalid Addresses")) {
-                throw new RuntimeException("Endereço de email inválido: " + String.join(", ", to));
+                throw new RuntimeException("Invalid email address: " + String.join(", ", to));
             }
             if (msg.contains("Authentication") || msg.contains("535")) {
-                throw new RuntimeException("Falha de autenticação no servidor de email.");
+                throw new RuntimeException("Email server authentication failed.");
             }
             if (msg.contains("Connection refused") || msg.contains("timed out")) {
-                throw new RuntimeException("Não foi possível ligar ao servidor de email.");
+                throw new RuntimeException("Could not connect to email server.");
             }
 
-            throw new RuntimeException("Erro ao enviar email: " + msg);
+            throw new RuntimeException("Error sending email: " + msg);
         }
     }
 

@@ -2,6 +2,7 @@ package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.services;
 
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dao.NotificationRepository;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery.DeliveryChannel;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery.factory.DeliveryChannelFactory;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.*;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dto.NotificationDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class NotificationService {
     private NotificationRepository notificationRepository;
 
     @Autowired
-    private List<DeliveryChannel> deliveryChannels;
+    private DeliveryChannelFactory deliveryChannelFactory;
 
     public NotificationDTO processNotification(NotificationDTO dto) {
         Notification notification = dto.toEntity();
@@ -47,7 +48,7 @@ public class NotificationService {
         String errorMessage = null;
 
         try {
-            DeliveryChannel channel = getDeliveryChannel(notification.getChannelType());
+            DeliveryChannel channel = deliveryChannelFactory.getDeliveryChannel(notification.getChannelType());
             channel.send(notification);
 
             notification.setStatus(DeliveryStatus.SENT);
@@ -72,18 +73,9 @@ public class NotificationService {
         notification.getAttemptsHistory().add(attempt);
     }
 
-    private DeliveryChannel getDeliveryChannel(ChannelType channelType) {
-        for (DeliveryChannel channel : deliveryChannels) {
-            if (channel.supports(channelType)) {
-                return channel;
-            }
-        }
-        throw new IllegalArgumentException("Canal de entrega não suportado: " + channelType);
-    }
-
     @Transactional
     public void checkDeliveryStatus() {
-        for (DeliveryChannel channel : deliveryChannels) {
+        for (DeliveryChannel channel : deliveryChannelFactory.getDeliveryChannels()) {
             for (String messageId : channel.checkDeliveryStatus()) {
                 handleDeliveryFailure(messageId, "Bounce: Delivery failure");
             }
@@ -126,7 +118,7 @@ public class NotificationService {
     public NotificationDTO findById(Integer id) {
         Notification notification = notificationRepository.findById(id).orElse(null);
         if (notification == null) {
-            throw new NoSuchElementException("Notificação não encontrada com ID: " + id);
+            throw new NoSuchElementException("Notification not found with ID: " + id);
         }
         return NotificationDTO.fromEntity(notification);
     }

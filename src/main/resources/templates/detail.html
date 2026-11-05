@@ -2,55 +2,55 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Detalhe da Notificacao</title>
+    <title>Notification Details</title>
 </head>
 <body>
-<h1>Detalhe da Notificação #<span th:text="${notification.id}">1</span></h1>
+<h1>Notification Details #<span th:text="${notification.id}">1</span></h1>
 
-<p><strong>Assunto:</strong> <span th:text="${notification.subject}">Assunto</span></p>
-<p><strong>Canal:</strong> <span th:text="${notification.channelType}">EMAIL</span></p>
-<p><strong>Estado:</strong> <span th:text="${notification.status}">SENT</span></p>
-<p><strong>Tentativas:</strong> <span th:text="${notification.attempts}">0</span> / <span th:text="${notification.maxAttempts}">3</span></p>
-<p><strong>Data Criação:</strong> <span th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:06</span></p>
-<p th:if="${notification.sentAt}"><strong>Data Envio:</strong> <span th:text="${#temporals.format(notification.sentAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:09</span></p>
-<p th:if="${notification.failureReason}"><strong>Motivo Falha:</strong> <span th:text="${notification.failureReason}">Erro</span></p>
+<p><strong>Subject:</strong> <span th:text="${notification.subject}">Subject</span></p>
+<p><strong>Channel:</strong> <span th:text="${notification.channelType}">EMAIL</span></p>
+<p><strong>Status:</strong> <span th:text="${notification.status}">SENT</span></p>
+<p><strong>Attempts:</strong> <span th:text="${notification.attempts}">0</span> / <span th:text="${notification.maxAttempts}">3</span></p>
+<p><strong>Creation Date:</strong> <span th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:06</span></p>
+<p th:if="${notification.sentAt}"><strong>Sent Date:</strong> <span th:text="${#temporals.format(notification.sentAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:09</span></p>
+<p th:if="${notification.failureReason}"><strong>Failure Reason:</strong> <span th:text="${notification.failureReason}">Error</span></p>
 
 <div th:if="${notification.payload != null and !notification.payload.isEmpty()}">
-    <p><strong>Metadados Adicionais:</strong></p>
+    <p><strong>Additional Metadata:</strong></p>
     <ul>
         <li th:each="entry : ${notification.payload}" th:if="${entry.key != 'subject' and entry.key != 'recipients'}">
-            <strong th:text="${entry.key}">Chave</strong>: <span th:text="${entry.value}">Valor</span>
+            <strong th:text="${entry.key}">Key</strong>: <span th:text="${entry.value}">Value</span>
         </li>
     </ul>
 </div>
 
-<p><strong>Conteúdo:</strong></p>
+<p><strong>Content:</strong></p>
 <pre th:text="${notification.content}"></pre>
 
-<h2>Destinatários</h2>
+<h2>Recipients</h2>
 <table border="1">
     <thead>
     <tr>
-        <th>Tipo</th>
-        <th>Endereço</th>
+        <th>Type</th>
+        <th>Address</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="r : ${notification.recipients}">
         <td th:text="${r.type}">TO</td>
-        <td th:text="${r.destination}">destinatario@exemplo.pt</td>
+        <td th:text="${r.destination}">recipient@example.com</td>
     </tr>
     </tbody>
 </table>
 
-<h2>Histórico de Tentativas</h2>
+<h2>Attempts History</h2>
 <table border="1" th:if="${notification.attemptsHistory != null and !notification.attemptsHistory.isEmpty()}">
     <thead>
     <tr>
-        <th>Tentativa #</th>
-        <th>Data / Hora</th>
-        <th>Estado</th>
-        <th>Erro / Detalhes</th>
+        <th>Attempt #</th>
+        <th>Date / Time</th>
+        <th>Status</th>
+        <th>Error / Details</th>
     </tr>
     </thead>
     <tbody>
@@ -62,9 +62,9 @@
     </tr>
     </tbody>
 </table>
-<p th:if="${notification.attemptsHistory == null or notification.attemptsHistory.isEmpty()}">Sem tentativas registadas.</p>
+<p th:if="${notification.attemptsHistory == null or notification.attemptsHistory.isEmpty()}">No attempts recorded.</p>
 
 <br>
-<a th:href="@{/notifications}">&larr; Voltar a Lista</a>
+<a th:href="@{/notifications}">&larr; Back to List</a>
 </body>
 </html>

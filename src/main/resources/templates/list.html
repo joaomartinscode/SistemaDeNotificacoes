@@ -2,34 +2,34 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Notificacoes</title>
+    <title>Notification List</title>
 </head>
 <body>
-<h1>Histórico de Notificações</h1>
+<h1>Notification History</h1>
 
-<a th:href="@{/notifications/new}">+ Criar nova notificação</a>
+<a th:href="@{/notifications/new}">+ Create New Notification</a>
 <br><br>
 
 <table>
     <thead>
     <tr>
         <th>ID</th>
-        <th>Assunto</th>
-        <th>Canal</th>
-        <th>Estado</th>
-        <th>Data Criação</th>
-        <th>Acao</th>
+        <th>Subject</th>
+        <th>Channel</th>
+        <th>Status</th>
+        <th>Creation Date</th>
+        <th>Action</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="n : ${notifications}">
         <td th:text="${n.id}">1</td>
-        <td th:text="${n.subject}">Assunto</td>
+        <td th:text="${n.subject}">Subject</td>
         <td th:text="${n.channelType}">EMAIL</td>
         <td th:text="${n.status}">SENT</td>
         <td th:text="${#temporals.format(n.createdAt, 'dd/MM/yyyy HH:mm')}">13/10/2026 12:23</td>
         <td>
-            <a th:href="@{/notifications/{id}(id=${n.id})}">Ver Detalhe</a>
+            <a th:href="@{/notifications/{id}(id=${n.id})}">View Details</a>
         </td>
     </tr>
     </tbody>

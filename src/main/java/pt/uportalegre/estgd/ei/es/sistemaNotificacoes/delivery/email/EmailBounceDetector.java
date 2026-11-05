@@ -1,4 +1,4 @@
-package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery;
+package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.delivery.email;
 
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
@@ -23,17 +23,6 @@ public class EmailBounceDetector {
 
     @Value("${spring.mail.password}")
     private String password;
-
-    public boolean hasBounced(String messageId) {
-        if (messageId == null || messageId.isBlank()) {
-            return false;
-        }
-        return !findBouncedIds(List.of(messageId)).isEmpty();
-    }
-
-    public boolean isMessageBounced(String messageId) {
-        return hasBounced(messageId);
-    }
 
     public List<String> findBouncedIds(List<String> messageIds) {
         List<String> bouncedList = new ArrayList<>();

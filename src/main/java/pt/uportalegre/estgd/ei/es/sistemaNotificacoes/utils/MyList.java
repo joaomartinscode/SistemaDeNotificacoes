@@ -39,11 +39,11 @@ public class MyList<T> implements List<T> {
         try {
             list.addAll(objectMapper.readerForListOf(elementType).readValue(json));
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao desserializar JSON", e);
+            throw new RuntimeException("Error deserializing JSON", e);
         }
     }
 
-    private void sincronizar() {
+    private void synchronize() {
         if (consumer == null) {
             return;
         }
@@ -52,86 +52,86 @@ public class MyList<T> implements List<T> {
             String json = objectMapper.writeValueAsString(list);
             consumer.accept(json);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao sincronizar lista", e);
+            throw new RuntimeException("Error synchronizing list", e);
         }
     }
 
     @Override
     public boolean add(T element) {
         list.add(element);
-        sincronizar();
+        synchronize();
         return true;
     }
 
     @Override
     public void add(int index, T element) {
         list.add(index, element);
-        sincronizar();
+        synchronize();
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        boolean alterou = list.addAll(c);
-        if (alterou) {
-            sincronizar();
+        boolean changed = list.addAll(c);
+        if (changed) {
+            synchronize();
         }
-        return alterou;
+        return changed;
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends T> c) {
-        boolean alterou = list.addAll(index, c);
-        if (alterou) {
-            sincronizar();
+        boolean changed = list.addAll(index, c);
+        if (changed) {
+            synchronize();
         }
-        return alterou;
+        return changed;
     }
 
     @Override
     public boolean remove(Object o) {
-        boolean alterou = list.remove(o);
-        if (alterou) {
-            sincronizar();
+        boolean changed = list.remove(o);
+        if (changed) {
+            synchronize();
         }
-        return alterou;
+        return changed;
     }
 
     @Override
     public T remove(int index) {
-        T removido = list.remove(index);
-        sincronizar();
-        return removido;
+        T removed = list.remove(index);
+        synchronize();
+        return removed;
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        boolean alterou = list.removeAll(c);
-        if (alterou) {
-            sincronizar();
+        boolean changed = list.removeAll(c);
+        if (changed) {
+            synchronize();
         }
-        return alterou;
+        return changed;
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        boolean alterou = list.retainAll(c);
-        if (alterou) {
-            sincronizar();
+        boolean changed = list.retainAll(c);
+        if (changed) {
+            synchronize();
         }
-        return alterou;
+        return changed;
     }
 
     @Override
     public void clear() {
         list.clear();
-        sincronizar();
+        synchronize();
     }
 
     @Override
     public T set(int index, T element) {
-        T anterior = list.set(index, element);
-        sincronizar();
-        return anterior;
+        T previous = list.set(index, element);
+        synchronize();
+        return previous;
     }
 
     @Override public int size() { return list.size(); }
