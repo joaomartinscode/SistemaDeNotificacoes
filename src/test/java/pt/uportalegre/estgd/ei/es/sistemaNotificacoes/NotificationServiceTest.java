@@ -15,12 +15,14 @@ import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Notification;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dto.RecipientDTO;
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.services.NotificationService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -143,11 +145,15 @@ public class NotificationServiceTest {
         Notification notification = createNotificationTest();
         notification.setStatus(DeliveryStatus.SENT);
         notification.setAttempts(1);
+        notification.setSentAt(LocalDateTime.now());
 
         String trackingId = "<bounce-12345@domain.pt>";
+        notification.getPayload().put("messageId", trackingId);
 
+        when(notificationRepository.findSentNotificationsSince(eq(DeliveryStatus.SENT), any(LocalDateTime.class))).thenReturn(List.of(notification));
         when(deliveryChannelFactory.getDeliveryChannels()).thenReturn(List.of(emailChannel));
-        when(emailChannel.checkDeliveryStatus()).thenReturn(List.of(trackingId));
+        when(emailChannel.supports(notification.getChannelType())).thenReturn(true);
+        when(emailChannel.checkDeliveryStatus(List.of(trackingId))).thenReturn(List.of(trackingId));
 
         when(notificationRepository.findByMessageId(trackingId)).thenReturn(Optional.of(notification));
 

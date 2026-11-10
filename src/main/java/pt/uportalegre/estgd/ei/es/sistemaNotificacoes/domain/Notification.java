@@ -13,22 +13,22 @@ import java.util.*;
 @Entity
 public class Notification {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "json")
-    private Map<String, Object> payload = new HashMap<>();
-
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ChannelType channelType;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "json")
+    private Map<String, Object> payload = new HashMap<>();
 
     @Transient
     private MyList<RecipientDTO> recipients;
@@ -78,6 +78,22 @@ public class Notification {
         this.id = id;
     }
 
+    public ChannelType getChannelType() {
+        return channelType;
+    }
+
+    public void setChannelType(ChannelType channelType) {
+        this.channelType = channelType;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public Map<String, Object> getPayload() {
         if (this.payload == null) {
             this.payload = new HashMap<>();
@@ -111,20 +127,18 @@ public class Notification {
         }
     }
 
-    public String getContent() {
-        return content;
+    public List<RecipientDTO> getRecipients() {
+        if (this.recipients == null) {
+            this.recipients = new MyList<>(this::getRecipientsJson, this::setRecipientsJson, RecipientDTO.class);
+        }
+        return recipients;
     }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public ChannelType getChannelType() {
-        return channelType;
-    }
-
-    public void setChannelType(ChannelType channelType) {
-        this.channelType = channelType;
+    public void setRecipients(List<RecipientDTO> recipients) {
+        getRecipients().clear();
+        if (recipients != null) {
+            getRecipients().addAll(recipients);
+        }
     }
 
     public String getRecipientsJson() {
@@ -161,20 +175,6 @@ public class Notification {
         }
     }
 
-    public List<RecipientDTO> getRecipients() {
-        if (this.recipients == null) {
-            this.recipients = new MyList<>(this::getRecipientsJson, this::setRecipientsJson, RecipientDTO.class);
-        }
-        return recipients;
-    }
-
-    public void setRecipients(List<RecipientDTO> recipients) {
-        getRecipients().clear();
-        if (recipients != null) {
-            getRecipients().addAll(recipients);
-        }
-    }
-
     public DeliveryStatus getStatus() {
         return status;
     }
@@ -207,13 +207,21 @@ public class Notification {
         this.failureReason = failureReason;
     }
 
-    public Integer getAttempts() { return attempts; }
+    public Integer getAttempts() {
+        return attempts;
+    }
 
-    public void setAttempts(Integer attempts) { this.attempts = attempts; }
+    public void setAttempts(Integer attempts) {
+        this.attempts = attempts;
+    }
 
-    public Integer getMaxAttempts() { return maxAttempts; }
+    public Integer getMaxAttempts() {
+        return maxAttempts;
+    }
 
-    public void setMaxAttempts(Integer maxAttempts) { this.maxAttempts = maxAttempts; }
+    public void setMaxAttempts(Integer maxAttempts) {
+        this.maxAttempts = maxAttempts;
+    }
 
     public List<NotificationAttempt> getAttemptsHistory() {
         return attemptsHistory;

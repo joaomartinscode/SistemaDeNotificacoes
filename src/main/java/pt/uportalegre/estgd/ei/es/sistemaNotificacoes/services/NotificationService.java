@@ -75,9 +75,23 @@ public class NotificationService {
 
     @Transactional
     public void checkDeliveryStatus() {
+        LocalDateTime window = LocalDateTime.now().minusMinutes(15);
+        List<Notification> sentNotifications = notificationRepository.findSentNotificationsSince(DeliveryStatus.SENT, window);
+
         for (DeliveryChannel channel : deliveryChannelFactory.getDeliveryChannels()) {
-            for (String messageId : channel.checkDeliveryStatus()) {
-                handleDeliveryFailure(messageId, "Bounce: Delivery failure");
+            List<String> messageIds = new ArrayList<>();
+            for (Notification notification : sentNotifications) {
+                if (channel.supports(notification.getChannelType())) {
+                    if (notification.getPayload() != null && notification.getPayload().get("messageId") != null) {
+                        messageIds.add(notification.getPayload().get("messageId").toString());
+                    }
+                }
+            }
+
+            if (!messageIds.isEmpty()) {
+                for (String messageId : channel.checkDeliveryStatus(messageIds)) {
+                    handleDeliveryFailure(messageId, "Bounce: Delivery failure");
+                }
             }
         }
     }

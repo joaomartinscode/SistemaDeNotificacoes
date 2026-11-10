@@ -8,5 +8,5 @@ import java.util.List;
 public interface DeliveryChannel {
     boolean supports(ChannelType channelType);
     void send(Notification notification);
-    List<String> checkDeliveryStatus();
+    List<String> checkDeliveryStatus(List<String> messageIds);
 }
