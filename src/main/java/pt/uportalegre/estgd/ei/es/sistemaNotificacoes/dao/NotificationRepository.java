@@ -1,10 +1,10 @@
 package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dao;
 
-import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.DeliveryStatus;
-import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Notification;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.DeliveryStatus;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Notification;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,8 +15,8 @@ public interface NotificationRepository extends CrudRepository<Notification, Int
     @Query("SELECT n FROM Notification n ORDER BY n.createdAt DESC")
     List<Notification> findAllOrderedByCreatedAtDesc();
 
-    @Query("SELECT n FROM Notification n WHERE n.status IN ?1 ORDER BY n.createdAt ASC")
-    List<Notification> findByStatus(List<DeliveryStatus> status);
+    @Query("SELECT n FROM Notification n LEFT JOIN FETCH n.attemptsHistory WHERE n.id = :id")
+    Optional<Notification> findByIdWithAttempts(@Param("id") Integer id);
 
     @Query("SELECT n FROM Notification n WHERE n.status = :status AND n.sentAt >= :since")
     List<Notification> findSentNotificationsSince(@Param("status") DeliveryStatus status, @Param("since") LocalDateTime since);

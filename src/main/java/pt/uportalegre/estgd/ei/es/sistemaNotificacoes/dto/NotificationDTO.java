@@ -11,6 +11,7 @@ public record NotificationDTO(
         String content,
         ChannelType channelType,
         DeliveryStatus status,
+        Priority priority,
         LocalDateTime createdAt,
         LocalDateTime sentAt,
         String failureReason,
@@ -21,6 +22,7 @@ public record NotificationDTO(
         List<NotificationAttemptDTO> attemptsHistory
 ) {
     public NotificationDTO {
+        priority = priority != null ? priority : Priority.NORMAL;
         recipients = recipients != null ? recipients : new ArrayList<>();
         if (payload == null) {
             payload = new HashMap<>();
@@ -33,7 +35,11 @@ public record NotificationDTO(
     }
 
     public NotificationDTO(String subject, String content, ChannelType channelType, List<RecipientDTO> recipients) {
-        this(null, subject, content, channelType, null, null, null, null, recipients, null, 0, 3, null);
+        this(null, subject, content, channelType, null, Priority.NORMAL, null, null, null, recipients, null, 0, 3, null);
+    }
+
+    public NotificationDTO(String subject, String content, ChannelType channelType, Priority priority, List<RecipientDTO> recipients) {
+        this(null, subject, content, channelType, null, priority, null, null, null, recipients, null, 0, 3, null);
     }
 
     public static NotificationDTO fromEntity(Notification notification) {
@@ -59,6 +65,7 @@ public record NotificationDTO(
                 notification.getContent(),
                 notification.getChannelType(),
                 notification.getStatus(),
+                notification.getPriority(),
                 notification.getCreatedAt(),
                 notification.getSentAt(),
                 notification.getFailureReason(),
@@ -77,6 +84,9 @@ public record NotificationDTO(
         }
         if (this.status != null) {
             entity.setStatus(this.status);
+        }
+        if(this.priority != null) {
+            entity.setPriority(this.priority);
         }
         if (this.payload != null) {
             entity.getPayload().putAll(this.payload);

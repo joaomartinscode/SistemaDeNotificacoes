@@ -10,15 +10,23 @@
 <p><strong>Subject:</strong> <span th:text="${notification.subject}">Subject</span></p>
 <p><strong>Channel:</strong> <span th:text="${notification.channelType}">EMAIL</span></p>
 <p><strong>Status:</strong> <span th:text="${notification.status}">SENT</span></p>
+<p><strong>Priority: </strong><span th:text="${notification.priority}">NORMAL</span></p>
 <p><strong>Attempts:</strong> <span th:text="${notification.attempts}">0</span> / <span th:text="${notification.maxAttempts}">3</span></p>
 <p><strong>Creation Date:</strong> <span th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:06</span></p>
 <p th:if="${notification.sentAt}"><strong>Sent Date:</strong> <span th:text="${#temporals.format(notification.sentAt, 'dd/MM/yyyy HH:mm:ss')}">13/10/2026 12:23:09</span></p>
 <p th:if="${notification.failureReason}"><strong>Failure Reason:</strong> <span th:text="${notification.failureReason}">Error</span></p>
 
+<div th:if="${notification.payload != null and notification.payload['failedRecipients'] != null and !notification.payload['failedRecipients'].isEmpty()}">
+    <p><strong>Failed Recipients:</strong></p>
+    <ul>
+        <li th:each="failed : ${notification.payload['failedRecipients']}" th:text="${failed}">failed@example.com</li>
+    </ul>
+</div>
+
 <div th:if="${notification.payload != null and !notification.payload.isEmpty()}">
     <p><strong>Additional Metadata:</strong></p>
     <ul>
-        <li th:each="entry : ${notification.payload}" th:if="${entry.key != 'subject' and entry.key != 'recipients'}">
+        <li th:each="entry : ${notification.payload}" th:if="${entry.key != 'subject' and entry.key != 'recipients' and entry.key != 'failedRecipients'}">
             <strong th:text="${entry.key}">Key</strong>: <span th:text="${entry.value}">Value</span>
         </li>
     </ul>

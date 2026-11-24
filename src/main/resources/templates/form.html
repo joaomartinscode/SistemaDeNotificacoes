@@ -7,11 +7,19 @@
 <body>
 <h1>New Notification</h1>
 
-<form th:action="@{/notifications/emailSend}" method="post">
+<p th:if="${error}" style="color: red;" th:text="${error}">Error message</p>
+
+<form th:action="@{/notifications/send}" method="post">
     <div>
         <label for="channelType">Delivery Channel:</label><br>
         <select id="channelType" name="channelType">
             <option th:each="ch : ${channels}" th:value="${ch}" th:text="${ch}" th:selected="${ch.name() == 'EMAIL'}">EMAIL</option>
+        </select>
+    </div>
+    <div>
+        <label for="priority">Priority:</label>
+        <select id="priority" name="priority">
+            <option th:each="p : ${priorities}" th:value="${p}" th:text="${p}" th:selected="${p.name() == 'NORMAL'}">NORMAL</option>
         </select>
     </div>
     <br>

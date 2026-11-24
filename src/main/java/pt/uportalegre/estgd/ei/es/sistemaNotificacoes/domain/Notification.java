@@ -37,8 +37,15 @@ public class Notification {
     @Column(nullable = false)
     private DeliveryStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Priority priority;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
@@ -52,12 +59,14 @@ public class Notification {
     @Column(nullable = false)
     private Integer maxAttempts = 3;
 
-    @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<NotificationAttempt> attemptsHistory = new ArrayList<>();
 
     public Notification() {
         this.status = DeliveryStatus.CREATED;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.priority = Priority.NORMAL;
     }
 
     public Notification(String subject, String content, ChannelType channelType, List<RecipientDTO> recipients) {
@@ -191,6 +200,14 @@ public class Notification {
         this.createdAt = createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public LocalDateTime getSentAt() {
         return sentAt;
     }
@@ -230,4 +247,13 @@ public class Notification {
     public void setAttemptsHistory(List<NotificationAttempt> attemptsHistory) {
         this.attemptsHistory = attemptsHistory;
     }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
 }

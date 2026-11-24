@@ -1,17 +1,54 @@
 package pt.uportalegre.estgd.ei.es.sistemaNotificacoes.dto;
 
 import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.ChannelType;
+import pt.uportalegre.estgd.ei.es.sistemaNotificacoes.domain.Priority;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-public record EmailNotificationRequestDTO(
-        ChannelType channelType,
-        String to,
-        String cc,
-        String bcc,
-        String subject,
-        String content
-) {
+public class EmailNotificationRequestDTO extends NotificationRequestDTO {
+
+    private String to;
+    private String cc;
+    private String bcc;
+    private String subject;
+
+    public EmailNotificationRequestDTO() {
+    }
+
+    public EmailNotificationRequestDTO(
+            ChannelType channelType,
+            Priority priority,
+            String to,
+            String cc,
+            String bcc,
+            String subject,
+            String content) {
+        super(channelType != null ? channelType : ChannelType.EMAIL, priority, content);
+        this.to = to;
+        this.cc = cc;
+        this.bcc = bcc;
+        this.subject = subject;
+    }
+
+    public EmailNotificationRequestDTO(
+            ChannelType channelType,
+            Priority priority,
+            String content,
+            Map<String, String> params) {
+        this(
+                channelType,
+                priority,
+                params != null ? params.get("to") : null,
+                params != null ? params.get("cc") : null,
+                params != null ? params.get("bcc") : null,
+                params != null ? params.get("subject") : null,
+                content
+        );
+    }
+
+    @Override
     public NotificationDTO toNotificationDTO() {
         List<RecipientDTO> recipientDTOs = new ArrayList<>();
         addDestinations(recipientDTOs, this.to, "TO");
@@ -24,21 +61,42 @@ public record EmailNotificationRequestDTO(
 
         return new NotificationDTO(
                 this.subject,
-                this.content,
-                this.channelType,
+                getContent(),
+                getChannelType(),
+                getPriority(),
                 recipientDTOs
         );
     }
 
-    private void addDestinations(List<RecipientDTO> list, String rawDestinations, String type) {
-        if (rawDestinations == null || rawDestinations.trim().isEmpty()) {
-            return;
-        }
-        for (String dest : rawDestinations.split(",")) {
-            String clean = dest.trim();
-            if (!clean.isEmpty()) {
-                list.add(new RecipientDTO(clean, type));
-            }
-        }
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
+
+    public String getCc() {
+        return cc;
+    }
+
+    public void setCc(String cc) {
+        this.cc = cc;
+    }
+
+    public String getBcc() {
+        return bcc;
+    }
+
+    public void setBcc(String bcc) {
+        this.bcc = bcc;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 }

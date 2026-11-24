@@ -12,21 +12,21 @@ import java.util.function.Supplier;
 
 public class MyList<T> implements List<T> {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final List<T> list = new ArrayList<>();
     private final Supplier<String> supplier;
     private final Consumer<String> consumer;
-    private final ObjectMapper objectMapper;
     private final Class<T> elementType;
 
     public MyList(Supplier<String> supplier, Consumer<String> consumer, Class<T> elementType) {
         this.supplier = supplier;
         this.consumer = consumer;
-        this.objectMapper = new ObjectMapper();
         this.elementType = elementType;
-        carregarDoJson();
+        loadFromJson();
     }
 
-    private void carregarDoJson() {
+    private void loadFromJson() {
         if (supplier == null) {
             return;
         }
@@ -37,7 +37,7 @@ public class MyList<T> implements List<T> {
         }
 
         try {
-            list.addAll(objectMapper.readerForListOf(elementType).readValue(json));
+            list.addAll(OBJECT_MAPPER.readerForListOf(elementType).readValue(json));
         } catch (Exception e) {
             throw new RuntimeException("Error deserializing JSON", e);
         }
@@ -49,7 +49,7 @@ public class MyList<T> implements List<T> {
         }
 
         try {
-            String json = objectMapper.writeValueAsString(list);
+            String json = OBJECT_MAPPER.writeValueAsString(list);
             consumer.accept(json);
         } catch (Exception e) {
             throw new RuntimeException("Error synchronizing list", e);
